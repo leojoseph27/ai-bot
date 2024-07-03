@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>BLK Assistant</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f5f5f5;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .chat-container {
+      width: 100%; /* Adjust to full width */
+      max-width: 400px; /* Maximum width for better readability */
+      height: 100%; /* Full height */
+      margin-bottom: 80px; /* Margin from bottom */
+      background-color: #fff;
+      border-radius: 15px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .chat-header {
+      background-color: #0066ff;
+      color: #fff;
+      padding: 15px;
+      text-align: center;
+      font-size: 1.2rem;
+      letter-spacing: 1px;
+      border-top-left-radius: 15px;
+      border-top-right-radius: 15px;
+    }
+
+    .chat-messages {
+      flex-grow: 1;
+      overflow-y: auto;
+      padding: 20px;
+      background-color: #f0f0f0;
+      display: flex;
+      flex-direction: column-reverse; /* Stack messages from bottom to top */
+    }
+
+    .message-container {
+      margin-bottom: 10px;
+    }
+
+    .user-message, .assistant-message {
+      max-width: 70%;
+      word-wrap: break-word;
+      padding: 12px 15px;
+      border-radius: 15px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .user-message {
+      align-self: flex-end;
+      background-color: #007bff;
+      color: #fff;
+      text-align: right;
+    }
+
+    .assistant-message {
+      align-self: flex-start;
+      background-color: #87CEEB;
+      color: #333;
+      text-align: left;
+    }
+
+    .chat-input {
+      position: fixed; /* Fixed position to prevent page zooming */
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px;
+      background-color: #fff;
+      border-top: 1px solid #ccc;
+    }
+
+    .chat-input input {
+      flex-grow: 1;
+      padding: 12px;
+      border: 1px solid #ccc;
+      border-radius: 20px;
+      margin-right: 10px;
+      font-size: 0.9rem;
+      outline: none;
+    }
+
+    .chat-input button {
+      background-color: #007bff;
+      color: #fff;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      transition: background-color 0.3s ease;
+    }
+
+    .chat-input button:hover {
+      background-color: #0056b3;
+    }
+  </style>
+</head>
+<body>
+  <div class="chat-container">
+    <div class="chat-header">
+      <h3>BLK Assistant</h3>
+    </div>
+    <div class="chat-messages" id="chat-messages">
+      <!-- Initial assistant message -->
+      <div class="message-container assistant-message">
+        <div class="message-bubble">
+          <p>Hi there! I'm Stella, your AI assistant here at BLK. What can I help you with today?</p>
+        </div>
+      </div>
+    </div>
+    <div class="chat-input">
+      <input type="text" id="user-input" placeholder="Type your message...">
+      <button id="send-button">Send</button>
+    </div>
+  </div>
+
+  <script>
+    const userInputField = document.getElementById('user-input');
+    const sendButton = document.getElementById('send-button');
+    const chatMessages = document.getElementById('chat-messages');
+
+    // Function to send message when Enter key is pressed in input field
+    userInputField.addEventListener('keydown', function(event) {
+      if (event.key === 'Enter') {
+        event.preventDefault(); // Prevent default action of form submission
+        sendButton.click(); // Simulate click on send button
+      }
+    });
+
+    sendButton.addEventListener('click', async () => {
+      const userInput = userInputField.value;
+      userInputField.value = ''; // Clear the input field after sending
+
+      // Create a new message element for user input
+      const userMessage = document.createElement('div');
+      userMessage.classList.add('message-container', 'user-message');
+      const userText = document.createElement('p');
+      userText.textContent = userInput;
+      userMessage.appendChild(userText);
+      chatMessages.insertBefore(userMessage, chatMessages.firstChild); // Insert user message at the top
+
+      // Send the user input to the server using fetch API
+      const response = await fetch('/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userInput })
+      });
+
+      const data = await response.json();
+      const blkResponse = data.blkResponse;
+
+      // Add the assistant's response to the chat container
+      const assistantMessage = document.createElement('div');
+      assistantMessage.classList.add('message-container', 'assistant-message');
+      const assistantText = document.createElement('p');
+      assistantText.textContent = blkResponse;
+      assistantMessage.appendChild(assistantText);
+      chatMessages.insertBefore(assistantMessage, chatMessages.firstChild); // Insert assistant message at the top
+
+      // Scroll to the bottom of the chat container after adding a new message
+      chatMessages.scrollTop = 0; // Scroll to the top to maintain the bottom-to-top stacking
+
+      // Reset viewport scale to 1 after message sent
+      document.body.style.zoom = 'reset';
+    });
+  </script>
+</body>
+</html>
